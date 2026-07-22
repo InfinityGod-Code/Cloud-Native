@@ -4,7 +4,7 @@ A **Container Orchestrator** is a platform that automates the deployment, manage
 
 As applications grow into dozens or even hundreds of microservices, manually managing containers becomes impractical. A container orchestrator abstracts the underlying infrastructure and ensures that applications remain highly available, scalable, and resilient.
 
-### Key Responsibilities
+### Key Responsibilities12` 
 
 * **Automated Deployment** – Deploy containers across multiple machines with minimal manual effort.
 * **Scaling** – Automatically increase or decrease the number of container instances based on demand.
