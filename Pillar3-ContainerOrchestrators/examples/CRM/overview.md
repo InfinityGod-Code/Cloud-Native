@@ -7,3 +7,5 @@ In this section, we will briefly explore FastAPI and understand how it fits into
 <p align="center">
   <img src="diagrams/asgi.png" alt="AI Engineering from Scratch — reference manual banner" width="100%">
 </p>
+
+FastAPI has another way of designing microservices using a mount sub-application.A mounted FastAPI application is a completely independent ASGI application that is attached under a specific URL path of another FastAPI application.

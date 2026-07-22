@@ -1,0 +1,15 @@
+services:
+  gateway:
+    build: .
+    ports:
+      - "8001:8001"
+
+  students:
+    build: ./Students
+    ports:
+      - "8002:8002"
+
+  library:
+    build: ./Library
+    ports:
+      - "8003:8003"
