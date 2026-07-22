@@ -7,13 +7,13 @@ Kubernetes is CNCF graduated project developed from Google and now open-sourced 
 A Kubernetes cluster consists of a control plane plus a set of worker machines, called nodes, that run containerized applications. Every cluster needs at least one worker node in order to run Pods.
 
 <p align="center">
-  <img src="diagrams/cluster_architecture.png" alt="Alt" width="100%">
+  <img src="../diagrams/cluster_architecture.png" alt="Alt" width="100%">
 </p>
 
 ### 1.1 Cluster Components 
 
 <p align="center">
-  <img src="diagrams/cluster_components.png" alt="Alt" width="100%">
+  <img src="../diagrams/cluster_components.png" alt="Alt" width="100%">
 </p>
 
 #### 1.1.1 Kubernetes API Server
@@ -32,8 +32,6 @@ The API Server is therefore the **communication hub of the Kubernetes control pl
 
 
 #### 1.1.1 etcd Cluster Ccomponent
-
-### etcd
 
 **etcd** is a distributed, strongly consistent **key-value store** that Kubernetes uses as the persistent backing store for the **cluster's control-plane state**. It stores critical information about the cluster, including the desired and current state of Kubernetes resources such as Pods, Deployments, Services, ConfigMaps, Secrets, and other objects.
 
