@@ -24,7 +24,7 @@ All 3 containers share the same network namespace (`localhost`).
 
 ## Step 0: Start Local Registry
 
-Run a local Docker registry on port 5000 (one-time):
+Run a local Docker registry on port 5001 (one-time, port 5000 is used by macOS AirPlay):
 
 ```bash
 make registry-up
@@ -53,18 +53,18 @@ make all
 ### Manual equivalent
 
 ```bash
-docker build -t localhost:5000/crm-gateway:latest .
-docker build -t localhost:5000/crm-students:latest ./Students
-docker build -t localhost:5000/crm-library:latest ./Library
+docker build -t localhost:5001/crm-gateway:latest .
+docker build -t localhost:5001/crm-students:latest ./Students
+docker build -t localhost:5001/crm-library:latest ./Library
 
-docker push localhost:5000/crm-gateway:latest
-docker push localhost:5000/crm-students:latest
-docker push localhost:5000/crm-library:latest
+docker push localhost:5001/crm-gateway:latest
+docker push localhost:5001/crm-students:latest
+docker push localhost:5001/crm-library:latest
 ```
 
 ### For remote clusters
 
-Replace `localhost:5000` with your registry address (e.g., `yourdockerhub/crm-gateway:latest`) and update `image:` in `deployment.yaml` accordingly.
+Replace `localhost:5001` with your registry address (e.g., `yourdockerhub/crm-gateway:latest`) and update `image:` in `deployment.yaml` accordingly.
 
 ---
 

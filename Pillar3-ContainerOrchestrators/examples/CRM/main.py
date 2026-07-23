@@ -34,7 +34,7 @@ def call_api_gateway(request: Request):
     portal_id = request.path_params["portal_id"]
     if portal_id == "1":
         raise RedirectStudentPortalException()
-    elif portal_id == "2":
+    elif portal_id == "3":
         raise RedirectLibraryPortalException()
     return {"message": "University ERP Systems"}
 

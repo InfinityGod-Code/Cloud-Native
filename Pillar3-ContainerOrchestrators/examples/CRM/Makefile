@@ -1,11 +1,11 @@
-REGISTRY = localhost:5000
+REGISTRY = localhost:5001
 
 .PHONY: all build push deploy restart registry-up registry-down
 
 all: build push deploy
 
 registry-up:
-	docker run -d -p 5000:5000 --name local-registry registry:2 || echo "Registry already running"
+	docker run -d -p 5001:5000 --name local-registry registry:2 || echo "Registry already running"
 
 registry-down:
 	docker stop local-registry && docker rm local-registry || true
@@ -20,8 +20,17 @@ push:
 	docker push $(REGISTRY)/crm-students:latest
 	docker push $(REGISTRY)/crm-library:latest
 
+minikube-load:
+	minikube image load $(REGISTRY)/crm-gateway:latest
+	minikube image load $(REGISTRY)/crm-students:latest
+	minikube image load $(REGISTRY)/crm-library:latest
+
 deploy:
-	kubectl apply -f k8s/
+	kubectl apply -f k8s/namespace.yaml
+	kubectl apply -f k8s/configmap.yaml
+	kubectl apply -f k8s/deployment.yaml
+	kubectl apply -f k8s/service.yaml
+	kubectl apply -f k8s/ingress.yaml
 
 restart:
 	kubectl rollout restart -n crm deployment/crm

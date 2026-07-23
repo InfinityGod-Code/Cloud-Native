@@ -17,8 +17,8 @@ spec:
     spec:
       containers:
       - name: gateway
-        image: localhost:5000/crm-gateway:latest
-        imagePullPolicy: Always
+        image: localhost:5001/crm-gateway:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8001
           name: http-gateway
@@ -49,8 +49,8 @@ spec:
           periodSeconds: 20
 
       - name: students
-        image: localhost:5000/crm-students:latest
-        imagePullPolicy: Always
+        image: localhost:5001/crm-students:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8002
           name: http-students
@@ -66,8 +66,8 @@ spec:
             cpu: "250m"
 
       - name: library
-        image: localhost:5000/crm-library:latest
-        imagePullPolicy: Always
+        image: localhost:5001/crm-library:latest
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8003
           name: http-library
