@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crm
+  namespace: crm
+  labels:
+    app: crm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crm
+  template:
+    metadata:
+      labels:
+        app: crm
+    spec:
+      containers:
+      - name: gateway
+        image: localhost:5000/crm-gateway:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8001
+          name: http-gateway
+        envFrom:
+        - configMapRef:
+            name: crm-config
+        env:
+        - name: PORT
+          value: "8001"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8001
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8001
+          initialDelaySeconds: 15
+          periodSeconds: 20
+
+      - name: students
+        image: localhost:5000/crm-students:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8002
+          name: http-students
+        envFrom:
+        - configMapRef:
+            name: crm-config
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "250m"
+
+      - name: library
+        image: localhost:5000/crm-library:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8003
+          name: http-library
+        envFrom:
+        - configMapRef:
+            name: crm-config
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "250m"
