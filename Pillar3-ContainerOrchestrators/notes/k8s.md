@@ -323,5 +323,5 @@ A Kubernetes Service provides a stable virtual endpoint for accessing a group of
 ## 3.0 K8s Terminologies and High Level Overview 
 
 <p align="center">
-  <img src="../diagrams/k8s_basic.png" alt="Alt" width="100%">
+  <img src="../diagrams/k8s_basic.png" alt="Alt" width="85%" height="85%">
 </p>
