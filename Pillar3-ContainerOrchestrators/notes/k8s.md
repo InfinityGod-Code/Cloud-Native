@@ -325,3 +325,8 @@ A Kubernetes Service provides a stable virtual endpoint for accessing a group of
 <p align="center">
   <img src="../diagrams/k8s_basic.png" alt="Alt" width="65%" height="65%">
 </p>
+
+As shown in the diagram above, a Deployment is responsible for managing a ReplicaSet, which in turn ensures that the desired number of Pod replicas are running inside the Kubernetes cluster.
+
+To define this desired state, we create a Deployment.yaml file. This YAML manifest describes how Kubernetes should deploy and manage our application—such as the number of replicas, container image, Pod labels, update strategy, resource requirements, and health checks.
+
