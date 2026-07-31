@@ -4,6 +4,8 @@ Eventra is an online event booking platform built with Go. It aggregates events 
 
 ## Project Structure
 
+### Current Structure
+
 ```
 Eventra/
 ├── cmd/
@@ -26,6 +28,40 @@ Eventra/
 │       └── mongolayer.go        # MongoDB implementation of DatabaseHandler
 ├── go.mod                       # Dependency management
 └── go.sum
+```
+
+### Future / Target Structure
+
+The layout below is the planned reference structure this service will grow into as it evolves:
+
+```
+my-microservice/
+├── .github/               # CI/CD workflows and automation templates
+├── cmd/                   # Main entry points for the application
+│   └── server/
+│       └── main.go        # Minimal bootstrap (wires up DI, starts app)
+├── internal/              # Private application and business code (cannot be imported by other services)
+│   ├── config/            # Environment configurations and secret loading
+│   ├── domain/            # Core business models, entities, and repository interfaces (No external dependencies)
+│   ├── repository/        # Data access implementations (PostgreSQL, MongoDB, Redis)
+│   │   ├── postgres/
+│   │   └── redis/
+│   ├── service/           # Use cases / Orchestration layer (orchestrates domain entities)
+│   └── transport/         # Network/API layer (HTTP handlers, gRPC servers)
+│       ├── grpc/
+│       └── http/
+├── pkg/                   # Public libraries that can be safely shared with other projects
+│   └── sdk/               # Client SDK generated for consumers of this microservice
+├── api/                   # API contracts and definitions
+│   ├── openapi.yaml       # OpenAPI/Swagger documentation
+│   └── protobuf/          # gRPC .proto definitions
+├── scripts/               # Scripts for builds, migrations, or local database setups
+├── build/                 # Packaging configurations (e.g., Dockerfiles)
+├── deployments/           # Infrastructure manifests (Helm charts, Kubernetes manifests, Terraform)
+├── test/                  # Additional external integration and end-to-end (E2E) tests
+├── go.mod                 # Dependency management
+├── go.sum
+└── Makefile               # Task automation (build, test, lint, migrate)
 ```
 
 ## Prerequisites
