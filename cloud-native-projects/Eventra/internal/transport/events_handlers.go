@@ -3,7 +3,7 @@ package transport
 import (
 	"encoding/json"
 	"eventra/internal/domain"
-	"eventra/repository"
+	"eventra/internal/repository"
 	"net/http"
 	"strings"
 

@@ -2,7 +2,7 @@ package mongo
 
 import (
 	"eventra/internal/domain"
-	"eventra/repository"
+	"eventra/internal/repository"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -42,7 +42,7 @@ func (mDB *MongoDBLayer) FindEvent(id []byte) (domain.Event, error) {
 	defer s.Close()
 	e := domain.Event{}
 
-	err := s.DB(DB).C(EVENTS).FindId(bson.ObjectId(id)).One(&e)
+	err := s.DB(DB).C(EVENTS).FindId(bson.ObjectIdHex(string(id))).One(&e)
 	return e, err
 }
 

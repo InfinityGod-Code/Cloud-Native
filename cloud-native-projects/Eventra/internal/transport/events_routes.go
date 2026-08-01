@@ -1,7 +1,7 @@
 package transport
 
 import (
-	"eventra/repository"
+	"eventra/internal/repository"
 	"net/http"
 
 	"github.com/gorilla/mux"

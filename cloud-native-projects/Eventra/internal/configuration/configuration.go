@@ -2,8 +2,8 @@ package configuration
 
 import (
 	"encoding/json"
-	"eventra/repository"
-	"fmt"
+	"eventra/internal/repository"
+	"log"
 	"os"
 )
 
@@ -31,9 +31,10 @@ func ExtractConfiguration(filename string) (ServiceConfig, error) {
 
 	file, err := os.Open(filename)
 	if err != nil {
-		fmt.Println("Configuration file not found. Continuing with default values.")
+		log.Printf("Configuration file not found. Continuing with default values.")
 		return conf, err
 	}
+	defer file.Close()
 
 	err = json.NewDecoder(file).Decode(&conf)
 	return conf, err
