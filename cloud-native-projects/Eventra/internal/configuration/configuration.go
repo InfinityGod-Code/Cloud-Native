@@ -12,6 +12,7 @@ var (
 	DBConnectionDefault = "mongodb://127.0.0.1"
 	RestfulEPDefault    = "localhost:8181"
 	RestfulTLSEPDefault = "localhost:9191"
+	RabbitMQURLDefault  = "amqp://guest:guest@localhost:5672/"
 )
 
 type ServiceConfig struct {
@@ -19,6 +20,7 @@ type ServiceConfig struct {
 	DBConnection      string            `json:"dbconnection"`
 	RestfulEndpoint   string            `json:"restfulapi_endpoint"`
 	RestfulTLSEndPint string            `json:"restfulapi-tlsendpoint"`
+	RabbitMQURL       string            `json:"rabbitmq_url"`
 }
 
 func ExtractConfiguration(filename string) (ServiceConfig, error) {
@@ -27,6 +29,7 @@ func ExtractConfiguration(filename string) (ServiceConfig, error) {
 		DBConnectionDefault,
 		RestfulEPDefault,
 		RestfulTLSEPDefault,
+		RabbitMQURLDefault,
 	}
 
 	file, err := os.Open(filename)

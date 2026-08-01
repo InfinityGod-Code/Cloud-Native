@@ -17,15 +17,23 @@ Eventra/
 │   │   └── config.json          # Runtime configuration
 │   ├── domain/
 │   │   └── models.go            # Core business models (Event, Location, Hall, User, Booking)
+│   ├── infra/
+│   │   └── rabbitmq.go          # RabbitMQ connection + messaging helpers (AMQP)
+│   ├── repository/
+│   │   ├── database_handler.go  # DatabaseHandler interface
+│   │   ├── dblayer.go           # Persistence layer factory (DI registration)
+│   │   └── mongo/
+│   │       └── mongolayer.go    # MongoDB implementation of DatabaseHandler
 │   └── transport/
 │       ├── events_handlers.go   # HTTP handlers for events
 │       ├── events_routes.go     # Route registration
 │       └── response.go          # JSON response helpers
-├── repository/
-│   ├── database_handler.go      # DatabaseHandler interface
-│   ├── dblayer.go               # Persistence layer factory (DI registration)
-│   └── mongo/
-│       └── mongolayer.go        # MongoDB implementation of DatabaseHandler
+├── build/                       # Docker & deployment assets
+│   ├── Dockerfile
+│   ├── docker-compose.yml       # mongo + rabbitmq + eventra
+│   ├── config.docker.json
+│   ├── Makefile
+│   └── RUNNING.md
 ├── go.mod                       # Dependency management
 └── go.sum
 ```
@@ -68,16 +76,45 @@ my-microservice/
 
 - [Go](https://go.dev/dl/) 1.26+
 - A running [MongoDB](https://www.mongodb.com/docs/manual/installation/) instance (default: `mongodb://localhost:27017`)
+- A running [RabbitMQ](https://www.rabbitmq.com/docs/download) instance (default: `amqp://guest:guest@localhost:5672/`)
 
 ## Getting Started
 
-Start a local MongoDB, then run the server:
+Start a local MongoDB and RabbitMQ, then run the server:
 
 ```bash
 go run ./cmd/server
 ```
 
-By default the server connects to `mongodb://localhost:27017` and listens on `:8080`.
+By default the server connects to `mongodb://localhost:27017`, `amqp://guest:guest@localhost:5672/`, and listens on `:8080`.
+
+The connection strings come from `internal/configuration/config.json`:
+
+| Field | Default (native) | Docker value |
+|-------|------------------|--------------|
+| `dbconnection` | `mongodb://127.0.0.1` | `mongodb://mongo:27017` |
+| `rabbitmq_url` | `amqp://guest:guest@localhost:5672/` | `amqp://guest:guest@rabbitmq:5672/` |
+| `restfulapi_endpoint` | `localhost:8181` | `:8181` |
+
+## RabbitMQ
+
+The app connects to RabbitMQ at startup via the `internal/infra` package (AMQP client `amqp091-go`). The connection is established before the HTTP server starts; a retry loop tolerates RabbitMQ coming up slightly later (e.g. under docker-compose).
+
+### Accessing the Management Dashboard
+
+Start the stack with Docker Compose (from the `Eventra/` root):
+
+```bash
+docker compose -f build/docker-compose.yml up -d --build
+```
+
+Then open the dashboard:
+
+- **URL:** http://localhost:15672
+- **Username:** `guest`
+- **Password:** `guest`
+
+The dashboard lets you inspect connections, channels, queues, exchanges, and publish/consume messages interactively. AMQP traffic for the app runs on port `5672`.
 
 ## API Endpoints
 
@@ -114,4 +151,5 @@ curl http://localhost:8080/events/name/Concert
 - **Language:** Go
 - **HTTP Router:** [gorilla/mux](https://github.com/gorilla/mux)
 - **Database:** MongoDB via [mgo.v2](https://gopkg.in/mgo.v2)
-- **Architecture:** Layered (transport → repository → domain)
+- **Message Broker:** [RabbitMQ](https://www.rabbitmq.com/) via [amqp091-go](https://github.com/rabbitmq/amqp091-go)
+- **Architecture:** Layered (transport → service → repository → domain + infra)
