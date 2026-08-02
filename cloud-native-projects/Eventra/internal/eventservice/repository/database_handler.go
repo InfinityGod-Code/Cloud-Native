@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"eventra/internal/domain"
+	"eventra/internal/eventservice/domain"
 )
 
 type DatabaseHandler interface {

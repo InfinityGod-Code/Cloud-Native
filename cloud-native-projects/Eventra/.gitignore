@@ -1,0 +1,13 @@
+# Compiled binaries
+server
+*.exe
+
+# Environment files
+.env
+*.env
+.env.local
+
+# IDE / editor
+.DS_Store
+.idea/
+.vscode/

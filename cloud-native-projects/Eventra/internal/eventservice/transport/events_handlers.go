@@ -2,8 +2,8 @@ package transport
 
 import (
 	"encoding/json"
-	"eventra/internal/domain"
-	"eventra/internal/repository"
+	"eventra/internal/eventservice/domain"
+	"eventra/internal/eventservice/repository"
 	"net/http"
 	"strings"
 

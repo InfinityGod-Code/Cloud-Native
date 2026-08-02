@@ -2,7 +2,7 @@ package configuration
 
 import (
 	"encoding/json"
-	"eventra/internal/repository"
+	"eventra/internal/eventservice/repository"
 	"log"
 	"os"
 )
