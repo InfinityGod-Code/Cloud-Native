@@ -1,8 +1,8 @@
 package mongo
 
 import (
-	"eventra/internal/eventservice/domain"
-	"eventra/internal/eventservice/repository"
+	"eventservice/domain"
+	"eventservice/repository"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"

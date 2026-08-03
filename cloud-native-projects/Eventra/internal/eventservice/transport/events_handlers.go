@@ -2,8 +2,10 @@ package transport
 
 import (
 	"encoding/json"
-	"eventra/internal/eventservice/domain"
-	"eventra/internal/eventservice/repository"
+	"eventservice/domain"
+	"eventservice/repository"
+	"infra"
+	"log"
 	"net/http"
 	"strings"
 
@@ -13,11 +15,13 @@ import (
 
 type eventServiceHandler struct {
 	dbHandler repository.DatabaseHandler
+	rabbit    *infra.RabbitMQ
 }
 
-func NewEventHandler(databaseHandler repository.DatabaseHandler) *eventServiceHandler {
+func NewEventHandler(databaseHandler repository.DatabaseHandler, rabbit *infra.RabbitMQ) *eventServiceHandler {
 	return &eventServiceHandler{
 		dbHandler: databaseHandler,
+		rabbit:    rabbit,
 	}
 }
 
@@ -42,6 +46,14 @@ func (et *eventServiceHandler) addEventHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 	event.ID = bson.ObjectId(id)
+
+	// Publish the new event so other services (e.g. bookingservice) can react.
+	if et.rabbit != nil {
+		payload, _ := json.Marshal(event)
+		if err := et.rabbit.Publish("events", string(payload)); err != nil {
+			log.Printf("failed to publish event to rabbitmq: %v", err)
+		}
+	}
 
 	WriteJSONResponse(w, http.StatusCreated, event)
 }

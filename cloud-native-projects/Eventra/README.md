@@ -6,38 +6,51 @@ Eventra is an online event booking platform built with Go. It aggregates events 
 
 ### Current Structure
 
+The project is a monorepo of independent Go modules, wired together with a root `go.work` workspace:
+
 ```
 Eventra/
-├── infra/
-│   └── rabbitmq.go              # RabbitMQ connection + messaging helpers (AMQP)
+├── go.work                     # Go workspace tying the modules together
+├── infra/                      # Own module (`infra`): shared infrastructure
+│   ├── go.mod
+│   ├── go.sum
+│   └── rabbitmq.go             # RabbitMQ connection + messaging helpers (AMQP)
 ├── internal/
-│   └── eventservice/
-│       ├── cmd/
-│       │   └── server/
-│       │       └── main.go      # Application entry point (wires DI, starts HTTP server)
-│       ├── configuration/
-│       │   ├── configuration.go # Config loader with sensible defaults
-│       │   └── config.json      # Runtime configuration
-│       ├── domain/
-│       │   └── models.go        # Core business models (Event, Location, Hall, User, Booking)
-│       ├── repository/
-│       │   ├── database_handler.go  # DatabaseHandler interface
-│       │   ├── dblayer.go           # Persistence layer factory (DI registration)
-│       │   └── mongo/
-│       │       └── mongolayer.go    # MongoDB implementation of DatabaseHandler
-│       └── transport/
-│           ├── events_handlers.go   # HTTP handlers for events
-│           ├── events_routes.go     # Route registration
-│           └── response.go          # JSON response helpers
-├── build/                       # Docker & deployment assets
-│   ├── Dockerfile
-│   ├── docker-compose.yml       # mongo + rabbitmq + eventra
-│   ├── config.docker.json
-│   ├── Makefile
-│   └── RUNNING.md
-├── go.mod                       # Dependency management
-└── go.sum
+│   ├── eventservice/           # Own module (`eventservice`): event API service
+│   │   ├── cmd/
+│   │   │   └── server/
+│   │   │       └── main.go     # Application entry point (wires DI, starts HTTP server)
+│   │   ├── configuration/
+│   │   │   ├── configuration.go # Config loader with sensible defaults
+│   │   │   └── config.json      # Runtime configuration
+│   │   ├── domain/
+│   │   │   └── models.go        # Core business models (Event, Location, Hall, User, Booking)
+│   │   ├── repository/
+│   │   │   ├── database_handler.go  # DatabaseHandler interface
+│   │   │   ├── dblayer.go           # Persistence layer factory (DI registration)
+│   │   │   └── mongo/
+│   │   │       └── mongolayer.go    # MongoDB implementation of DatabaseHandler
+│   │   ├── transport/
+│   │   │   ├── events_handlers.go   # HTTP handlers for events
+│   │   │   ├── events_routes.go     # Route registration
+│   │   │   └── response.go          # JSON response helpers
+│   │   ├── go.mod
+│   │   └── go.sum
+│   ├── bookingservice/         # Own module (`bookingservice`): booking API service
+│   │   ├── cmd/
+│   │   │   └── server/
+│   │   │       └── main.go
+│   │   └── go.mod
+│   └── lib/
+└── build/                      # Docker & deployment assets
+    ├── Dockerfile
+    ├── docker-compose.yml      # mongo + rabbitmq + eventra
+    ├── config.docker.json
+    ├── Makefile
+    └── RUNNING.md
 ```
+
+`eventservice` depends on the local `infra` module via a `replace` directive in `internal/eventservice/go.mod` (`replace infra => ../../infra`). The root `go.work` enables running Go commands across all modules from the project root.
 
 ### Future / Target Structure
 
@@ -81,7 +94,7 @@ my-microservice/
 
 ## Getting Started
 
-Start a local MongoDB and RabbitMQ, then run the server:
+Start a local MongoDB and RabbitMQ, then run the server from the `Eventra/` root (the root `go.work` resolves the modules):
 
 ```bash
 go run ./internal/eventservice/cmd/server
