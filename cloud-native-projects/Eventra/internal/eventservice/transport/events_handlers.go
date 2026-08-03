@@ -5,9 +5,11 @@ import (
 	"eventservice/domain"
 	"eventservice/repository"
 	"infra"
+	"infra/events"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2/bson"
@@ -47,11 +49,24 @@ func (et *eventServiceHandler) addEventHandler(w http.ResponseWriter, r *http.Re
 	}
 	event.ID = bson.ObjectId(id)
 
-	// Publish the new event so other services (e.g. bookingservice) can react.
+	// Publish an event.created message so other services (e.g. bookingservice)
+	// can react to the new event.
+	//
+	// We translate the internal domain.Event into the shared events.EventCreatedEvent
+	// DTO (defined in infra) so the wire format stays stable and decoupled from the
+	// storage model. This is the "producer publishes to a named exchange with a
+	// routing key" pattern.
 	if et.rabbit != nil {
-		payload, _ := json.Marshal(event)
-		if err := et.rabbit.Publish("events", string(payload)); err != nil {
-			log.Printf("failed to publish event to rabbitmq: %v", err)
+		createdEvent := events.EventCreatedEvent{
+			ID:         event.ID.Hex(),
+			Name:       event.Name,
+			LocationID: event.Location.ID.Hex(),
+			Start:      time.Unix(event.StartDate, 0),
+			End:        time.Unix(event.EndDate, 0),
+		}
+		payload, _ := json.Marshal(createdEvent)
+		if err := et.rabbit.PublishOnExchange(infra.Event, infra.EventCreatedRoutingKey, string(payload)); err != nil {
+			log.Printf("failed to publish event.created to rabbitmq: %v", err)
 		}
 	}
 

@@ -14,7 +14,14 @@ Eventra/
 ├── infra/                      # Own module (`infra`): shared infrastructure
 │   ├── go.mod
 │   ├── go.sum
-│   └── rabbitmq.go             # RabbitMQ connection + messaging helpers (AMQP)
+│   ├── rabbitmq.go             # RabbitMQ connection + messaging helpers (AMQP)
+│   ├── constants.go            # Event exchange/queue/routing-key constants
+│   ├── events/
+│   │   └── created_event.go    # Shared EventCreatedEvent DTO (the wire contract)
+│   └── helper/
+│       ├── rabbitmq/
+│       │   └── rabbitmq_helper.go  # RetryConnect helper
+│       └── kafka/
 ├── internal/
 │   ├── eventservice/           # Own module (`eventservice`): event API service
 │   │   ├── cmd/
@@ -31,7 +38,7 @@ Eventra/
 │   │   │   └── mongo/
 │   │   │       └── mongolayer.go    # MongoDB implementation of DatabaseHandler
 │   │   ├── transport/
-│   │   │   ├── events_handlers.go   # HTTP handlers for events
+│   │   │   ├── events_handlers.go   # HTTP handlers for events (publishes event.created)
 │   │   │   ├── events_routes.go     # Route registration
 │   │   │   └── response.go          # JSON response helpers
 │   │   ├── go.mod
@@ -39,18 +46,20 @@ Eventra/
 │   ├── bookingservice/         # Own module (`bookingservice`): booking API service
 │   │   ├── cmd/
 │   │   │   └── server/
-│   │   │       └── main.go
-│   │   └── go.mod
+│   │   │       └── main.go     # Listener: consumes event.created from RabbitMQ
+│   │   ├── go.mod
+│   │   └── go.sum
 │   └── lib/
 └── build/                      # Docker & deployment assets
-    ├── Dockerfile
-    ├── docker-compose.yml      # mongo + rabbitmq + eventra
+    ├── Dockerfile.eventservice  # eventservice image
+    ├── Dockerfile.bookingservice # bookingservice listener image
+    ├── docker-compose.yml      # mongo + rabbitmq + eventservice + bookingservice
     ├── config.docker.json
     ├── Makefile
     └── RUNNING.md
 ```
 
-`eventservice` depends on the local `infra` module via a `replace` directive in `internal/eventservice/go.mod` (`replace infra => ../../infra`). The root `go.work` enables running Go commands across all modules from the project root.
+`eventservice` and `bookingservice` depend on the local `infra` module via a `replace` directive in each `go.mod` (`replace infra => ../../infra`). The root `go.work` enables running Go commands across all modules from the project root.
 
 ### Future / Target Structure
 
@@ -129,6 +138,64 @@ Then open the dashboard:
 - **Password:** `guest`
 
 The dashboard lets you inspect connections, channels, queues, exchanges, and publish/consume messages interactively. AMQP traffic for the app runs on port `5672`.
+
+### Event Publishing & the Booking Service Listener
+
+When an event is created, `eventservice` publishes an `event.created` message so other services can react. The messaging contract lives in the shared `infra` module:
+
+| Piece | Constant (in `infra/constants.go`) | Value |
+|-------|------------------------------------|-------|
+| Exchange | `infra.Event` | `event` (topic) |
+| Queue | `infra.EventQueue` | `event-queue` |
+| Routing key | `infra.EventCreatedRoutingKey` | `event.created` |
+| Payload | `infra/events.EventCreatedEvent` | shared JSON DTO (`id`, `name`, `location_id`, `start_time`, `end_time`) |
+
+Flow:
+
+```
+POST /events ─► eventservice persists event
+                └─► publishes EventCreatedEvent to [event exchange]  (routing key event.created)
+                         │  (topic exchange, bound to event-queue)
+                         ▼
+                      [event-queue]
+                         │
+                         ▼
+              bookingservice listener (logs each event)
+```
+
+`infra.RabbitMQ.SetupEventTopology()` declares the exchange, queue, and binding idempotently; both the publisher (`eventservice`) and the consumer (`bookingservice`) call it at startup, so either side can boot first without losing messages.
+
+**Run everything with Docker Compose** (builds both service images and starts all four containers):
+
+```bash
+docker compose -f build/docker-compose.yml up -d --build
+
+# Watch both services' logs in one console:
+docker compose -f build/docker-compose.yml logs -f eventservice bookingservice
+```
+
+**Run locally instead** (start MongoDB + RabbitMQ first, e.g. `docker compose -f build/docker-compose.yml up -d mongo rabbitmq`):
+
+```bash
+# Terminal 1 — API service (publishes events)
+go run ./internal/eventservice/cmd/server
+
+# Terminal 2 — booking listener (consumes events)
+RABBITMQ_URL="amqp://guest:guest@localhost:5672/" go run ./internal/bookingservice/cmd/server
+```
+
+Then create an event and watch the listener log it:
+
+```bash
+curl -X POST http://localhost:8181/events \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Concert","duration":120,"startdate":1700000000,"enddate":1700003600,"location":{"name":"Main Hall","address":"1 Example St","country":"US"}}'
+
+# bookingservice terminal prints:
+# received event.created: id=... name="Concert" location_id=... start=... end=...
+```
+
+You can also watch the message move through the RabbitMQ dashboard: the `event` exchange (type `topic`), the `event-queue` queue, and the `event.created` binding.
 
 ## API Endpoints
 

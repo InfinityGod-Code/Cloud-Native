@@ -1,5 +1,7 @@
 # Compiled binaries
-server
+# NOTE: anchored to the repo root so it does NOT ignore the cmd/server/ source
+# directories (that's why /server, not server).
+/server
 *.exe
 
 # Environment files
